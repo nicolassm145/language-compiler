@@ -3,30 +3,26 @@
 #include <string.h>
 #include <ctype.h>
 
-/* ========================================
-   LISTA DE PALAVRAS-CHAVE
-   ======================================== */
-const char *palavras_chave[] = {
+char *palavras_chave[] = {
     "LEIA", "ESCREVA", "SE", "ENTAO", "ENTÃO",
     "SENAO", "SENÃO", "FIM", "FACA", "FAÇA", "ENQUANTO"
 };
 
-const TipoToken tipos_palavras_chave[] = {
+TipoToken tipos_palavras_chave[] = {
     TOKEN_LEIA, TOKEN_ESCREVA, TOKEN_SE, TOKEN_ENTAO, TOKEN_ENTAO,
     TOKEN_SENAO, TOKEN_SENAO, TOKEN_FIM, TOKEN_FACA, TOKEN_FACA, TOKEN_ENQUANTO
 };
 
-/* ========================================
-   FUNÇÃO: Lê próximo caractere do arquivo
-   ======================================== */
-void ler_char(AnalisadorLexico *a) {
-    if (a->fim) return;
-    
-    a->ch = fgetc(a->arquivo);
-    
-    if (a->ch == EOF) {
+// Le o proximo caracter
+void leChar(AnalisadorLexico *a) {
+    if (a->fim) 
+        return;
+
+    a->atual = fgetc(a->arquivo);
+
+    if (a->atual == EOF) {
         a->fim = 1;
-    } else if (a->ch == '\n') {
+    } else if (a->atual == '\n') {
         a->linha++;
         a->coluna = 0;
     } else {
@@ -34,95 +30,75 @@ void ler_char(AnalisadorLexico *a) {
     }
 }
 
-/* ========================================
-   FUNÇÃO: Pula espaços, tabs e quebras de linha
-   ======================================== */
-void pular_espacos(AnalisadorLexico *a) {
-    while (!a->fim && (a->ch == ' ' || a->ch == '\t' || 
-                       a->ch == '\n' || a->ch == '\r')) {
-        ler_char(a);
-    }
+// Ignora todos os tipos de espaços
+void ignoraEspacos(AnalisadorLexico *a) {
+    while (!a->fim && (a->atual == ' ' || a->atual == '\t' || a->atual == '\n' || a->atual == '\r')) 
+        leChar(a);
 }
 
-/* ========================================
-   FUNÇÃO: Pula comentários [...]
-   ======================================== */
-void pular_comentario(AnalisadorLexico *a) {
-    ler_char(a);  /* Pula o '[' */
-    
-    while (!a->fim && a->ch != ']') {
-        ler_char(a);
-    }
-    
-    if (a->ch == ']') {
-        ler_char(a);  /* Pula o ']' */
-    }
+// Ignora comentários 
+void ignoraComentario(AnalisadorLexico *a) {
+    leChar(a);  
+
+    while (!a->fim && a->atual != ']') 
+        leChar(a);
+
+    if (a->atual == ']') 
+        leChar(a);  
 }
 
-/* ========================================
-   FUNÇÃO: Verifica se lexema é palavra-chave
-   Retorna: tipo do token (palavra-chave ou ID)
-   ======================================== */
-TipoToken eh_palavra_chave(const char *lexema) {
+// Compara os lexemas com as Palavras chave
+TipoToken comparaID(const char *lexema) {
     int i;
-    int total = 11;  /* Total de palavras-chave */
+    int total = 11;  
     
-    for (i = 0; i < total; i++) {
-        if (strcmp(lexema, palavras_chave[i]) == 0) {
+    for (i = 0; i < total; i++) 
+        if (strcmp(lexema, palavras_chave[i]) == 0) 
             return tipos_palavras_chave[i];
-        }
-    }
-    
-    return TOKEN_ID;  /* Não é palavra-chave, é identificador */
+        
+    return TOKEN_ID;  // Retorna q é ID
 }
 
-/* ========================================
-   FUNÇÃO: Lê um identificador ou palavra-chave
-   Estados: INICIAL → ID1 → ID2 → ID3 → FIM
-   ======================================== */
-Token ler_identificador(AnalisadorLexico *a) {
+// Le ID
+Token leIdentificador(AnalisadorLexico *a) {
     Token t;
     int i = 0;
     
     t.linha = a->linha;
     t.coluna = a->coluna;
     
-    /* Lê letras (maiúsculas ou minúsculas) */
-    while (!a->fim && isalpha(a->ch) && i < 99) {
-        t.lexema[i++] = a->ch;
-        ler_char(a);
+    // Le o todo o "ID",
+    while (!a->fim && isalpha(a->atual) && i < 99) {
+        t.lexema[i++] = a->atual;
+        leChar(a);
     }
     t.lexema[i] = '\0';
     
-    /* Verifica se é palavra-chave */
-    t.tipo = eh_palavra_chave(t.lexema);
-    
-    /* Se for ID, verifica se tem só minúsculas e máx 3 letras */
+    // Apos isso verifica se ele pode ser uma palavra chave
+    t.tipo = comparaID(t.lexema);
+
+    // Se passar, ele agr verifica se é valido
+    // "apresentam-se como sequencias de uma a três letras minúsculas"
     if (t.tipo == TOKEN_ID) {
         int j;
-        int tem_maiuscula = 0;
+        int maiucula = 0;
         
         for (j = 0; t.lexema[j] != '\0'; j++) {
             if (isupper(t.lexema[j])) {
-                tem_maiuscula = 1;
+                maiucula = 1;
                 break;
             }
         }
-        
-        /* Identificador deve ter: só minúsculas e máx 3 letras */
-        if (tem_maiuscula || i > 3) {
+
+        // Verifica se tem o tamanho correto
+        if (maiucula || i > 3) 
             t.tipo = TOKEN_ERRO;
-        }
     }
-    
     return t;
 }
 
-/* ========================================
-   FUNÇÃO: Lê um número
-   Estados: INICIAL → NUM → NUM → ... → FIM
-   ======================================== */
-Token ler_numero(AnalisadorLexico *a) {
+// Le numeros
+Token leNumero(AnalisadorLexico *a) {
     Token t;
     int i = 0;
     
@@ -130,21 +106,17 @@ Token ler_numero(AnalisadorLexico *a) {
     t.coluna = a->coluna;
     t.tipo = TOKEN_NUM;
     
-    /* Lê todos os dígitos */
-    while (!a->fim && isdigit(a->ch) && i < 99) {
-        t.lexema[i++] = a->ch;
-        ler_char(a);
+    while (!a->fim && isdigit(a->atual) && i < 99) {
+        t.lexema[i++] = a->atual;
+        leChar(a);
     }
     t.lexema[i] = '\0';
     
     return t;
 }
 
-/* ========================================
-   FUNÇÃO: Lê uma string '...'
-   Estados: INICIAL → STRING → ... → FIM
-   ======================================== */
-Token ler_string(AnalisadorLexico *a) {
+// Le as strings
+Token leString(AnalisadorLexico *a) {
     Token t;
     int i = 0;
     
@@ -152,28 +124,25 @@ Token ler_string(AnalisadorLexico *a) {
     t.coluna = a->coluna;
     t.tipo = TOKEN_STRING;
     
-    ler_char(a);  /* Pula o ' inicial */
+    leChar(a);  // Pula o ' inicial
     
-    /* Lê até encontrar outro ' */
-    while (!a->fim && a->ch != '\'' && i < 99) {
-        t.lexema[i++] = a->ch;
-        ler_char(a);
+    // Le ate encontrar outro 
+    while (!a->fim && a->atual != '\'' && i < 99) {
+        t.lexema[i++] = a->atual;
+        leChar(a);
     }
     
-    if (a->ch == '\'') {
-        ler_char(a);  /* Pula o ' final */
-    } else {
-        t.tipo = TOKEN_ERRO;  /* String não fechada */
-    }
+    if (a->atual == '\'') 
+        leChar(a);  // Pula o ' final
+    else 
+        t.tipo = TOKEN_ERRO;  // Não fecharam a string
     
     t.lexema[i] = '\0';
     return t;
 }
 
-/* ========================================
-   FUNÇÃO: Cria o analisador léxico
-   ======================================== */
-AnalisadorLexico* criar_analisador(const char *nome_arquivo) {
+// Cria o analisador lexico
+AnalisadorLexico* criaAnalisador(const char *nome_arquivo) {
     AnalisadorLexico *a;
     
     a = (AnalisadorLexico*)malloc(sizeof(AnalisadorLexico));
@@ -184,44 +153,36 @@ AnalisadorLexico* criar_analisador(const char *nome_arquivo) {
         free(a);
         return NULL;
     }
-    
     a->linha = 1;
     a->coluna = 0;
     a->fim = 0;
-    
-    ler_char(a);  /* Lê primeiro caractere */
-    
+    leChar(a);  
+
     return a;
 }
 
-/* ========================================
-   FUNÇÃO: Destrói o analisador
-   ======================================== */
-void destruir_analisador(AnalisadorLexico *a) {
+// Libera memória
+void liberaMemoria(AnalisadorLexico *a) {
     if (a) {
         if (a->arquivo) fclose(a->arquivo);
         free(a);
     }
 }
 
-/* ========================================
-   FUNÇÃO PRINCIPAL: Retorna próximo token
-   Implementa o AFD completo
-   ======================================== */
-Token proximo_token(AnalisadorLexico *a) {
+// Pega o prox token
+Token proximoToken(AnalisadorLexico *a) {
     Token t;
     
-    /* Pula espaços e comentários */
+    // Pula todos os espaços e comentarios
     while (!a->fim) {
-        pular_espacos(a);
-        if (a->ch == '[') {
-            pular_comentario(a);
-        } else {
+        ignoraEspacos(a);
+        if (a->atual == '[') 
+            ignoraComentario(a);
+        else 
             break;
-        }
     }
     
-    /* Fim de arquivo? */
+    // Verifica se é o final
     if (a->fim) {
         t.tipo = TOKEN_EOF;
         t.lexema[0] = '\0';
@@ -233,148 +194,157 @@ Token proximo_token(AnalisadorLexico *a) {
     t.linha = a->linha;
     t.coluna = a->coluna;
     
-    /* É letra? → Identificador ou palavra-chave */
-    if (isalpha(a->ch)) {
-        return ler_identificador(a);
-    }
+    // Verifica se é ID ou palavra chave
+    if (isalpha(a->atual)) 
+        return leIdentificador(a);
     
-    /* É dígito? → Número */
-    if (isdigit(a->ch)) {
-        return ler_numero(a);
-    }
+    // Verifica se é numero
+    if (isdigit(a->atual)) 
+        return leNumero(a);
     
-    /* É string '...'? */
-    if (a->ch == '\'') {
-        return ler_string(a);
-    }
+    // Ignora se for string
+    if (a->atual == '\'') 
+        return leString(a);
     
-    /* É atribuição :=? */
-    if (a->ch == ':') {
+    // Verifica se é atribuicao :=
+    if (a->atual == ':') {
         t.lexema[0] = ':';
-        ler_char(a);
+        leChar(a);
         
-        if (a->ch == '=') {
+        if (a->atual == '=') {
             t.lexema[1] = '=';
             t.lexema[2] = '\0';
             t.tipo = TOKEN_ATRIB;
-            ler_char(a);
+            leChar(a);
         } else {
             t.lexema[1] = '\0';
-            t.tipo = TOKEN_ERRO;  /* ':' sozinho é erro */
+            t.tipo = TOKEN_ERRO;  // ':' sozinho e erro
         }
         return t;
     }
     
-    /* Operadores e delimitadores simples */
-    t.lexema[0] = a->ch;
+    // Operadores 
+    t.lexema[0] = a->atual;
     t.lexema[1] = '\0';
     
-    switch (a->ch) {
-        case '+': t.tipo = TOKEN_MAIS;      break;
-        case '-': t.tipo = TOKEN_MENOS;     break;
-        case '*': t.tipo = TOKEN_MULT;      break;
-        case '/': t.tipo = TOKEN_DIV;       break;
-        case '<': t.tipo = TOKEN_MENOR;     break;
-        case '=': t.tipo = TOKEN_IGUAL;     break;
-        case ',': t.tipo = TOKEN_VIRGULA;   break;
-        case '(': t.tipo = TOKEN_ABRE_PAR;  break;
-        case ')': t.tipo = TOKEN_FECHA_PAR; break;
-        default:  t.tipo = TOKEN_ERRO;      break;
+    switch (a->atual) {
+        case '+': 
+            t.tipo = TOKEN_MAIS;      
+        break;
+        case '-': 
+            t.tipo = TOKEN_MENOS;     
+            break;
+        case '*': 
+            t.tipo = TOKEN_MULT;      
+            break;
+        case '/': 
+            t.tipo = TOKEN_DIV;       
+            break;
+        case '<': 
+            t.tipo = TOKEN_MENOR;     
+            break;
+        case '=': 
+            t.tipo = TOKEN_IGUAL;     
+            break;
+        case ',': 
+            t.tipo = TOKEN_VIRGULA;   
+            break;
+        default:  
+            t.tipo = TOKEN_ERRO;     
+            break;
     }
-    
-    ler_char(a);
+    leChar(a);
     return t;
 }
 
-/* ========================================
-   FUNÇÃO: Retorna nome do token (para debug)
-   ======================================== */
-const char* nome_token(TipoToken tipo) {
+// Retorna o nome do token
+const char* nomeToken(TipoToken tipo) {
     switch (tipo) {
-        case TOKEN_LEIA:      return "LEIA";
-        case TOKEN_ESCREVA:   return "ESCREVA";
-        case TOKEN_SE:        return "SE";
-        case TOKEN_ENTAO:     return "ENTAO";
-        case TOKEN_SENAO:     return "SENAO";
-        case TOKEN_FIM:       return "FIM";
-        case TOKEN_FACA:      return "FACA";
-        case TOKEN_ENQUANTO:  return "ENQUANTO";
-        case TOKEN_ID:        return "ID";
-        case TOKEN_NUM:       return "NUM";
-        case TOKEN_STRING:    return "STRING";
-        case TOKEN_ATRIB:     return "ATRIB";
-        case TOKEN_MAIS:      return "MAIS";
-        case TOKEN_MENOS:     return "MENOS";
-        case TOKEN_MULT:      return "MULT";
-        case TOKEN_DIV:       return "DIV";
-        case TOKEN_MENOR:     return "MENOR";
-        case TOKEN_IGUAL:     return "IGUAL";
-        case TOKEN_VIRGULA:   return "VIRGULA";
-        case TOKEN_ABRE_PAR:  return "ABRE_PAR";
-        case TOKEN_FECHA_PAR: return "FECHA_PAR";
-        case TOKEN_EOF:       return "EOF";
-        case TOKEN_ERRO:      return "ERRO";
-        default:              return "DESCONHECIDO";
+        case TOKEN_LEIA:      
+            return "LEIA";
+        case TOKEN_ESCREVA:   
+            return "ESCREVA";
+        case TOKEN_SE:        
+            return "SE";
+        case TOKEN_ENTAO:     
+            return "ENTAO";
+        case TOKEN_SENAO:     
+            return "SENAO";
+        case TOKEN_FIM:       
+            return "FIM";
+        case TOKEN_FACA:      
+            return "FACA";
+        case TOKEN_ENQUANTO:  
+            return "ENQUANTO";
+        case TOKEN_ID:        
+            return "ID";
+        case TOKEN_NUM:      
+            return "NUM";
+        case TOKEN_STRING:    
+            return "STRING";
+        case TOKEN_ATRIB:     
+            return "ATRIB";
+        case TOKEN_MAIS:      
+            return "MAIS";
+        case TOKEN_MENOS:     
+            return "MENOS";
+        case TOKEN_MULT:      
+            return "MULT";
+        case TOKEN_DIV:       
+            return "DIV";
+        case TOKEN_MENOR:     
+            return "MENOR";
+        case TOKEN_IGUAL:     
+            return "IGUAL";
+        case TOKEN_VIRGULA:   
+            return "VIRGULA";
+        case TOKEN_EOF:       
+            return "EOF";
+        case TOKEN_ERRO:      
+            return "ERRO";
+        default:              
+            return "DESCONHECIDO";
     }
 }
 
-/* ========================================
-   FUNÇÃO: Processa arquivo e salva tokens
-   ======================================== */
-void salvar_tokens(const char *arq_entrada, const char *arq_saida) {
+// Impreme os tokens em um arquivo
+void salvaTokens(const char *arq_entrada, const char *arq_saida) {
     AnalisadorLexico *a;
     FILE *saida;
     Token t;
     int total = 0;
     int erros = 0;
     
-    a = criar_analisador(arq_entrada);
-    if (!a) {
-        printf("ERRO: não consegui abrir '%s'\n", arq_entrada);
-        return;
-    }
-    
+    a = criaAnalisador(arq_entrada);
+
     saida = fopen(arq_saida, "w");
-    if (!saida) {
-        printf("ERRO: não consegui criar '%s'\n", arq_saida);
-        destruir_analisador(a);
-        return;
-    }
-    
-    /* Cabeçalho */
-    fprintf(saida, "=== ANÁLISE LÉXICA - LINGUAGEM X25a ===\n");
+   
+    // Cabecalho
+    fprintf(saida, "=== ANALISE LEXICA - LINGUAGEM X25a ===\n");
     fprintf(saida, "Arquivo: %s\n", arq_entrada);
     fprintf(saida, "========================================\n\n");
     fprintf(saida, "%-6s %-8s %-15s %s\n", "Linha", "Coluna", "Token", "Lexema");
     fprintf(saida, "------------------------------------------------\n");
-    
-    /* Processa todos os tokens */
+ 
+    // Imprime todos os tokens
     do {
-        t = proximo_token(a);
+        t = proximoToken(a);
         
         if (t.tipo != TOKEN_EOF) {
             fprintf(saida, "%-6d %-8d %-15s %s\n", 
-                    t.linha, t.coluna, nome_token(t.tipo), t.lexema);
+                    t.linha, t.coluna, nomeToken(t.tipo), t.lexema);
             total++;
             if (t.tipo == TOKEN_ERRO) erros++;
         }
         
     } while (t.tipo != TOKEN_EOF);
     
-    /* Rodapé */
-    fprintf(saida, "\n========================================\n");
-    fprintf(saida, "Total de tokens: %d\n", total);
-    fprintf(saida, "Erros: %d\n", erros);
-    
     if (erros == 0)
-        fprintf(saida, "✓ Análise OK!\n");
+        fprintf(saida, "Deu certo\n");
     else
-        fprintf(saida, "✗ Análise com erros!\n");
+        fprintf(saida, "Deu errado\n");
     
     fclose(saida);
-    destruir_analisador(a);
-    
-    printf("Tokens encontrados: %d\n", total);
-    printf("Erros: %d\n", erros);
-    printf("Resultado: %s\n", arq_saida);
+    liberaMemoria(a);
+
 }
