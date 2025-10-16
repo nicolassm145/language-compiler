@@ -1,6 +1,6 @@
 # Compilador para Linguagem X25a
 
-## 📋 Descrição
+## Descrição
 
 Este projeto implementa um **compilador completo** para a linguagem X25a, incluindo:
 - **Analisador Léxico (Scanner)** - Parte (a)
@@ -9,44 +9,7 @@ Este projeto implementa um **compilador completo** para a linguagem X25a, inclui
 
 O analisador léxico utiliza um **Autômato Finito Determinístico (AFD)** implementado manualmente em C, e o analisador sintático utiliza a técnica **descendente recursiva preditiva LL(1)**.
 
-## 🗂️ Estrutura do Projeto
-
-```
-AtividadeAvaliativa/
-├── === DOCUMENTAÇÃO ===
-├── README.md                    # Este arquivo
-├── INDICE.md                    # Navegação completa do projeto
-├── AFD.md                       # Diagrama do AFD
-├── GRAMATICA.md                 # Gramática explicada
-├── EXPLICACAO_CODIGO.md         # Como funciona o léxico
-├── EXPLICACAO_PARSER.md         # Como funciona o sintático
-├── RESPOSTA_PARTE_A.md          # Resposta formal - Parte A
-├── RESPOSTA_PARTE_B.md          # Resposta formal - Parte B
-├── RESPOSTA_PARTE_C.md          # Resposta formal - Parte C
-├── NOTA_VIRGULAS_TRAILING.md    # Explicação sobre vírgulas trailing
-├── RESUMO_FINAL.md              # Resumo geral do projeto
-│
-├── === ANALISADOR LÉXICO ===
-├── lexico.h                     # Definições de tipos e funções
-├── lexico.c                     # Implementação do AFD
-├── main.c                       # Programa de teste do léxico
-├── analisador                   # Executável do léxico
-│
-├── === ANALISADOR SINTÁTICO ===
-├── sintatico.h                  # Definições do parser
-├── sintatico.c                  # Implementação LL(1)
-├── main_parser.c                # Programa de teste do parser
-├── sintatico                    # Executável do parser
-│
-└── === ARQUIVOS DE TESTE ===
-    ├── teste1.x25a              # Exemplo 1: Fatorial
-    ├── teste2.x25a              # Exemplo 2: Maior de dois números
-    ├── teste3.x25a              # Exemplo 3: Menu de banco
-    ├── teste4.x25a              # Exemplo 4: Média de números
-    └── *.Results.txt            # Resultados da análise léxica
-```
-
-## 🔧 Como Compilar
+## Como Compilar
 
 ### Parte (a) - Analisador Léxico:
 
@@ -107,7 +70,7 @@ Isso vai:
 ./sintatico teste4.x25a
 ```
 
-## 📊 Formato das Saídas
+## Formato das Saídas
 
 ### Saída do Analisador Léxico:
 
@@ -134,43 +97,14 @@ Deu certo
 
 **Programa válido:**
 ```
-========================================
-  ANALISADOR SINTATICO - LINGUAGEM X25a
-========================================
 
-Arquivo de entrada: teste1.x25a
-Total de tokens: 39
-========================================
-
-Iniciando analise sintatica...
-
-========================================
 Analise sintatica concluida SEM ERROS!
 Programa VALIDO segundo a gramatica X25a.
-========================================
+
 ```
 
-**Programa com erros:**
-```
-========================================
-  ANALISADOR SINTATICO - LINGUAGEM X25a
-========================================
 
-Arquivo de entrada: teste_erro.x25a
-Total de tokens: 15
-========================================
-
-Iniciando analise sintatica...
-ERRO SINTATICO (linha 3, coluna 5): Esperado :=
-Token encontrado: NUM (10)
-
-========================================
-Analise sintatica concluida COM ERROS!
-Total de erros encontrados: 1
-========================================
-```
-
-## 🎯 Tokens Reconhecidos
+## Tokens Reconhecidos
 
 ### Palavras-chave:
 - `LEIA`, `ESCREVA`
@@ -190,7 +124,6 @@ Total de erros encontrados: 1
 
 ### Delimitadores:
 - `,` (vírgula)
-- `(`, `)` (parênteses)
 
 ### Literais:
 - Strings: `'texto entre aspas simples'`
@@ -198,36 +131,8 @@ Total de erros encontrados: 1
 ### Comentários:
 - `[comentário]` - são ignorados
 
-## 🧪 Testando com seu próprio código
 
-1. Crie um arquivo `.x25a` com seu programa:
-
-```bash
-nano meu_programa.x25a
-```
-
-2. Execute o analisador léxico:
-
-```bash
-./analisador meu_programa.x25a
-```
-
-3. Execute o analisador sintático:
-
-```bash
-./sintatico meu_programa.x25a
-```
-
-4. Veja os resultados:
-
-```bash
-# Tokens gerados
-cat meu_programa.x25a.Results.txt
-
-# Validação sintática (aparece no terminal)
-```
-
-## 🐛 Tratamento de Erros
+##  Tratamento de Erros
 
 ### Erros Léxicos:
 
@@ -237,7 +142,7 @@ O analisador léxico detecta:
 3. **String não fechada** (falta de `'` no final)
 4. **Caracteres inválidos**
 
-Erros são marcados como `TOKEN_ERRO` no arquivo de saída.
+
 
 ### Erros Sintáticos:
 
@@ -247,32 +152,6 @@ O analisador sintático detecta:
 3. **Operador faltando** (esperado :=, <, =, etc.)
 4. **Estrutura incorreta** (comando incompleto)
 
-Erros são reportados com **linha e coluna** exatas.
-
-## 📖 Documentação
-
-### Para Analisador Léxico:
-- **`AFD.md`** - Diagrama completo do Autômato Finito Determinístico
-- **`EXPLICACAO_CODIGO.md`** - Explicação detalhada do código
-- **`RESPOSTA_PARTE_A.md`** - Resposta formal da Parte A
-
-### Para Gramática:
-- **`GRAMATICA.md`** - Gramática explicada didaticamente
-- **`RESPOSTA_PARTE_B.md`** - Resposta formal da Parte B
-
-### Para Analisador Sintático:
-- **`EXPLICACAO_PARSER.md`** - Explicação passo a passo do parser
-- **`RESPOSTA_PARTE_C.md`** - Resposta formal da Parte C
-- **`NOTA_VIRGULAS_TRAILING.md`** - Explicação sobre vírgulas trailing
-
-### Navegação:
-- **`INDICE.md`** - Índice completo do projeto
-- **`RESUMO_FINAL.md`** - Resumo de tudo que foi feito
-
-Para visualizar diagramas Mermaid:
-- Abra os arquivos `.md` no VS Code
-- Ou visualize no GitHub
-- Ou use um visualizador Mermaid online
 
 ## 🔍 Estrutura do Código
 
@@ -366,77 +245,3 @@ programa()
 ```
 
 Veja explicação completa em `EXPLICACAO_PARSER.md`!
-
-## ✅ Checklist de Funcionamento
-
-### Analisador Léxico:
-- [x] Reconhece palavras-chave
-- [x] Reconhece identificadores (1-3 letras)
-- [x] Reconhece números inteiros
-- [x] Reconhece operador de atribuição `:=`
-- [x] Reconhece operadores aritméticos
-- [x] Reconhece operadores relacionais
-- [x] Reconhece delimitadores
-- [x] Reconhece strings entre `'...'`
-- [x] Ignora comentários `[...]`
-- [x] Ignora espaços em branco
-- [x] Detecta erros léxicos
-- [x] Gera arquivo de saída formatado
-- [x] Conta linha e coluna dos tokens
-
-### Analisador Sintático:
-- [x] Valida estrutura de comandos
-- [x] Valida atribuições (id := expressão)
-- [x] Valida leitura (LEIA id)
-- [x] Valida escrita (ESCREVA saída)
-- [x] Valida SE-ENTAO-SENAO-FIM
-- [x] Valida FACA-ENQUANTO
-- [x] Valida expressões aritméticas
-- [x] Valida expressões booleanas
-- [x] Respeita precedência de operadores
-- [x] Aceita vírgulas trailing (opcionais)
-- [x] Detecta erros sintáticos
-- [x] Reporta linha e coluna dos erros
-
-### Resultados dos Testes:
-- [x] teste1.x25a: ✅ 39 tokens, 0 erros
-- [x] teste2.x25a: ✅ 30 tokens, 0 erros
-- [x] teste3.x25a: ✅ 42 tokens, 0 erros
-- [x] teste4.x25a: ✅ 44 tokens, 0 erros
-
-## 📚 Referências
-
-- Especificação da linguagem X25a (documento da atividade)
-- Conceitos de compiladores e análise léxica
-- Conceitos de análise sintática descendente
-- Autômatos Finitos Determinísticos (AFD)
-- Gramáticas LL(1) e parsing preditivo
-
-## 🎓 Características Especiais
-
-### Vírgulas Trailing
-A linguagem X25a aceita **vírgulas trailing** (opcionais) antes de palavras-chave estruturais como `ENQUANTO`, `SENAO`, e `FIM`. Isso permite flexibilidade no estilo de codificação.
-
-Exemplo - ambos são válidos:
-```x25a
-FACA
-  x := x + 1,      ← com vírgula
-ENQUANTO x < 10
-
-FACA
-  x := x + 1       ← sem vírgula
-ENQUANTO x < 10
-```
-
-Veja `NOTA_VIRGULAS_TRAILING.md` para detalhes!
-
-## 👨‍💻 Autor
-
-Desenvolvido como parte da Atividade Avaliativa de Compiladores - UNIFEI
-
----
-
-**Dúvidas?** 
-- Consulte `INDICE.md` para navegação completa
-- Leia `RESUMO_FINAL.md` para visão geral do projeto
-- Veja os arquivos de documentação específicos de cada parte

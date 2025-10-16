@@ -1,6 +1,5 @@
 #ifndef SINTATICO_H
 #define SINTATICO_H
-
 #include "lexico.h"
 
 // Estrutura do analisador sintatico
@@ -18,8 +17,8 @@ void destruirParser(AnalisadorSintatico *parser);
 int analisar(AnalisadorSintatico *parser);
 
 // Funcoes auxiliares
-void avancar(AnalisadorSintatico *parser);
+void avancaToken(AnalisadorSintatico *parser);
 void erro(AnalisadorSintatico *parser, const char *mensagem);
-int esperado(AnalisadorSintatico *parser, TipoToken tipo);
+int mesmoTipo(AnalisadorSintatico *parser, TipoToken tipo);
 
 #endif

@@ -2,17 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-// ===== FUNCOES AUXILIARES =====
+void comandos(AnalisadorSintatico *p);
+void comando(AnalisadorSintatico *p);
+void exprArit(AnalisadorSintatico *p);
+void exprBool(AnalisadorSintatico *p);
+void termo(AnalisadorSintatico *p);
 
-// Avanca para o proximo token
-void avancar(AnalisadorSintatico *p) {
+// Avanca para o proximo
+void avancaToken(AnalisadorSintatico *p) {
     if (p->posicao < p->total - 1) {
         p->posicao++;
         p->atual = p->tokens[p->posicao];
     }
 }
 
-// Reporta erro sintatico
+// Se tiver erro
 void erro(AnalisadorSintatico *p, const char *mensagem) {
     printf("ERRO SINTATICO (linha %d, coluna %d): %s\n", 
            p->atual.linha, p->atual.coluna, mensagem);
@@ -21,31 +25,27 @@ void erro(AnalisadorSintatico *p, const char *mensagem) {
     p->erros++;
 }
 
-// Verifica se o token atual e o esperado
-int esperado(AnalisadorSintatico *p, TipoToken tipo) {
+// Verifica se é igual o tipo esperado
+int mesmoTipo(AnalisadorSintatico *p, TipoToken tipo) {
     if (p->atual.tipo == tipo) {
-        avancar(p);
-        return 1;  // Sucesso
+        avancaToken(p);
+        return 1;  
     }
-    return 0;  // Falhou
+    return 0;  
 }
 
-// ===== FUNCOES DA GRAMATICA =====
+// Alias para mesmoTipo (compatibilidade)
+int esperado(AnalisadorSintatico *p, TipoToken tipo) {
+    return mesmoTipo(p, tipo);
+}
 
-// Declaracao antecipada (forward declaration)
-void comandos(AnalisadorSintatico *p);
-void comando(AnalisadorSintatico *p);
-void exprArit(AnalisadorSintatico *p);
-void exprBool(AnalisadorSintatico *p);
-
+// Gramatica
 // PROGRAMA -> COMANDOS
 void programa(AnalisadorSintatico *p) {
-    printf("Iniciando analise sintatica...\n");
     comandos(p);
-    
-    if (p->atual.tipo != TOKEN_EOF) {
-        erro(p, "Esperado fim de arquivo");
-    }
+
+    if (p->atual.tipo != TOKEN_EOF) 
+        erro(p, "Cade o fim");
 }
 
 // COMANDOS -> COMANDO RESTO_COMANDOS
@@ -53,17 +53,12 @@ void programa(AnalisadorSintatico *p) {
 void comandos(AnalisadorSintatico *p) {
     comando(p);
     
-    // Enquanto houver virgulas, continua lendo comandos
+    // Se tem virgula, continua
     while (p->atual.tipo == TOKEN_VIRGULA) {
-        avancar(p);  // Consome a virgula
-        
-        // Se após a vírgula vier palavra-chave estrutural, para
-        // (aceita vírgula trailing antes de ENQUANTO, SENAO, FIM)
-        if (p->atual.tipo == TOKEN_ENQUANTO || 
-            p->atual.tipo == TOKEN_SENAO || 
-            p->atual.tipo == TOKEN_FIM) {
+        avancaToken(p);
+        // Tava dando erro antes 
+        if (p->atual.tipo == TOKEN_ENQUANTO || p->atual.tipo == TOKEN_SENAO || p->atual.tipo == TOKEN_FIM) 
             break;
-        }
         
         comando(p);
     }
@@ -72,7 +67,7 @@ void comandos(AnalisadorSintatico *p) {
 // ATRIBUICAO -> id := EXPR_ARIT
 void atribuicao(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_ID)) {
-        erro(p, "Esperado identificador na atribuicao");
+        erro(p, "Esperado id na atribuicao");
         return;
     }
     
@@ -104,15 +99,11 @@ void escrita(AnalisadorSintatico *p) {
         erro(p, "Esperado ESCREVA");
         return;
     }
-    
-    // Aceita: id, num ou string
-    if (p->atual.tipo == TOKEN_ID || 
-        p->atual.tipo == TOKEN_NUM || 
-        p->atual.tipo == TOKEN_STRING) {
-        avancar(p);
-    } else {
-        erro(p, "Esperado identificador, numero ou string apos ESCREVA");
-    }
+    // Aceita os 3
+    if (p->atual.tipo == TOKEN_ID || p->atual.tipo == TOKEN_NUM || p->atual.tipo == TOKEN_STRING) 
+        avancaToken(p);
+    else
+        erro(p, "Esperado id, num ou string apos ESCREVA");
 }
 
 // SE_ENTAO -> SE EXPR_BOOL ENTAO COMANDOS PARTE_SENAO FIM
@@ -134,10 +125,10 @@ void seEntao(AnalisadorSintatico *p) {
     
     // SENAO e opcional
     if (p->atual.tipo == TOKEN_SENAO) {
-        avancar(p);
+        avancaToken(p);
         comandos(p);
     }
-    
+
     if (!esperado(p, TOKEN_FIM)) {
         erro(p, "Esperado FIM");
         return;
@@ -167,41 +158,35 @@ void comando(AnalisadorSintatico *p) {
         case TOKEN_ID:
             atribuicao(p);
             break;
-            
         case TOKEN_LEIA:
             leitura(p);
-            break;
-            
+            break; 
         case TOKEN_ESCREVA:
             escrita(p);
-            break;
-            
+            break;   
         case TOKEN_SE:
             seEntao(p);
             break;
-            
         case TOKEN_FACA:
             facaEnquanto(p);
             break;
-            
         default:
-            erro(p, "Comando invalido");
-            avancar(p);  // Tenta recuperar
+            erro(p, "Nao tem");
+            avancaToken(p);
             break;
     }
 }
 
 // TERMO -> FATOR RESTO_TERMO
 // RESTO_TERMO -> * FATOR RESTO_TERMO | / FATOR RESTO_TERMO | ε
-void termo(AnalisadorSintatico *p);
 
 // FATOR -> id | num
 void fator(AnalisadorSintatico *p) {
-    if (p->atual.tipo == TOKEN_ID || p->atual.tipo == TOKEN_NUM) {
-        avancar(p);
-    } else {
+    if (p->atual.tipo == TOKEN_ID || p->atual.tipo == TOKEN_NUM) 
+        avancaToken(p);
+    else 
         erro(p, "Esperado identificador ou numero");
-    }
+
 }
 
 // TERMO -> FATOR RESTO_TERMO
@@ -210,7 +195,7 @@ void termo(AnalisadorSintatico *p) {
     
     // RESTO_TERMO -> * FATOR | / FATOR | ε
     while (p->atual.tipo == TOKEN_MULT || p->atual.tipo == TOKEN_DIV) {
-        avancar(p);
+        avancaToken(p);
         fator(p);
     }
 }
@@ -222,7 +207,7 @@ void exprArit(AnalisadorSintatico *p) {
     
     // RESTO_EXPR -> + TERMO | - TERMO | ε
     while (p->atual.tipo == TOKEN_MAIS || p->atual.tipo == TOKEN_MENOS) {
-        avancar(p);
+        avancaToken(p);
         termo(p);
     }
 }
@@ -234,11 +219,11 @@ void exprBool(AnalisadorSintatico *p) {
     
     // Operador relacional
     if (p->atual.tipo == TOKEN_MENOR || p->atual.tipo == TOKEN_IGUAL) {
-        avancar(p);
+        avancaToken(p);
         exprArit(p);
-    } else {
+    } else 
         erro(p, "Esperado operador relacional (< ou =)");
-    }
+    
 }
 
 // ===== FUNCOES DE GERENCIAMENTO =====
@@ -294,8 +279,6 @@ void destruirParser(AnalisadorSintatico *p) {
 // Funcao principal de analise
 int analisar(AnalisadorSintatico *p) {
     programa(p);
-    
-    printf("\n========================================\n");
     
     if (p->erros == 0) {
         printf("Analise sintatica concluida SEM ERROS!\n");
