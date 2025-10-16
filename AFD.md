@@ -7,53 +7,148 @@ stateDiagram-v2
     [*] --> INICIAL
     
     %% Identificadores e Palavras-chave
-    INICIAL --> ID1 : letra[a-z]
-    ID1 --> ID2 : letra[a-z]
-    ID2 --> ID3 : letra[a-z]
-    ID1 --> [*] : outro → TOKEN_ID/PALAVRA_CHAVE
-    ID2 --> [*] : outro → TOKEN_ID/PALAVRA_CHAVE
-    ID3 --> [*] : outro → TOKEN_ID/PALAVRA_CHAVE
+    INICIAL --> ID1: letra a-z ou A-Z
+    ID1 --> ID2: letra
+    ID2 --> ID3: letra
+    ID1 --> FIM_ID: não letra
+    ID2 --> FIM_ID: não letra
+    ID3 --> FIM_ID: não letra
+    FIM_ID --> [*]: TOKEN_ID ou PALAVRA_CHAVE
     
     %% Números
-    INICIAL --> NUM : dígito[0-9]
-    NUM --> NUM : dígito[0-9]
-    NUM --> [*] : outro → TOKEN_NUM
+    INICIAL --> NUM: dígito 0-9
+    NUM --> NUM: dígito
+    NUM --> FIM_NUM: não dígito
+    FIM_NUM --> [*]: TOKEN_NUM
     
     %% Atribuição :=
-    INICIAL --> DOIS_PONTOS : ':'
-    DOIS_PONTOS --> [*] : '=' → TOKEN_ATRIB
-    DOIS_PONTOS --> ERRO : outro → ERRO
+    INICIAL --> DOIS_PONTOS: :
+    DOIS_PONTOS --> FIM_ATRIB: =
+    FIM_ATRIB --> [*]: TOKEN_ATRIB
+    DOIS_PONTOS --> ERRO: outro caractere
     
     %% Comentários [...]
-    INICIAL --> COMENTARIO : '['
-    COMENTARIO --> COMENTARIO : qualquer exceto ']'
-    COMENTARIO --> INICIAL : ']'
+    INICIAL --> COMENTARIO: [
+    COMENTARIO --> COMENTARIO: qualquer exceto ]
+    COMENTARIO --> INICIAL: ]
     
     %% Strings '...'
-    INICIAL --> STRING : "'"
-    STRING --> STRING : qualquer exceto "'"
-    STRING --> [*] : "'" → TOKEN_STRING
+    INICIAL --> STRING: '
+    STRING --> STRING: qualquer exceto '
+    STRING --> FIM_STRING: '
+    FIM_STRING --> [*]: TOKEN_STRING
     
-    %% Operadores aritméticos
-    INICIAL --> [*] : '+' → TOKEN_MAIS
-    INICIAL --> [*] : '-' → TOKEN_MENOS
-    INICIAL --> [*] : '*' → TOKEN_MULT
-    INICIAL --> [*] : '/' → TOKEN_DIV
+    %% Operadores e Delimitadores (diretos)
+    INICIAL --> OP_MAIS: +
+    OP_MAIS --> [*]: TOKEN_MAIS
     
-    %% Operadores relacionais
-    INICIAL --> [*] : '<' → TOKEN_MENOR
-    INICIAL --> [*] : '=' → TOKEN_IGUAL
+    INICIAL --> OP_MENOS: -
+    OP_MENOS --> [*]: TOKEN_MENOS
     
-    %% Delimitadores
-    INICIAL --> [*] : ',' → TOKEN_VIRGULA
-    INICIAL --> [*] : '(' → TOKEN_ABRE_PAR
-    INICIAL --> [*] : ')' → TOKEN_FECHA_PAR
+    INICIAL --> OP_MULT: *
+    OP_MULT --> [*]: TOKEN_MULT
+    
+    INICIAL --> OP_DIV: /
+    OP_DIV --> [*]: TOKEN_DIV
+    
+    INICIAL --> OP_MENOR: <
+    OP_MENOR --> [*]: TOKEN_MENOR
+    
+    INICIAL --> OP_IGUAL: =
+    OP_IGUAL --> [*]: TOKEN_IGUAL
+    
+    INICIAL --> VIRGULA: ,
+    VIRGULA --> [*]: TOKEN_VIRGULA
+    
+    INICIAL --> ABRE_PAR: (
+    ABRE_PAR --> [*]: TOKEN_ABRE_PAR
+    
+    INICIAL --> FECHA_PAR: )
+    FECHA_PAR --> [*]: TOKEN_FECHA_PAR
     
     %% Espaços em branco (ignorados)
-    INICIAL --> INICIAL : espaço/tab/newline
+    INICIAL --> INICIAL: espaço/tab/enter
     
-    %% Estado de erro
-    ERRO --> [*] : reportar erro
+    %% Erro
+    ERRO --> [*]: TOKEN_ERRO
+```
+
+## Diagrama Alternativo (Flowchart - Mais Visual)
+
+```mermaid
+flowchart TD
+    Start([INÍCIO]) --> Inicial{Estado INICIAL}
+    
+    %% Identificadores
+    Inicial -->|letra| ID1[ID1: 1 letra]
+    ID1 -->|letra| ID2[ID2: 2 letras]
+    ID2 -->|letra| ID3[ID3: 3 letras]
+    ID1 -->|não-letra| VerificaID1{É palavra-chave?}
+    ID2 -->|não-letra| VerificaID2{É palavra-chave?}
+    ID3 -->|não-letra| VerificaID3{É palavra-chave?}
+    VerificaID1 -->|Sim| TokenKW1[TOKEN_PALAVRA_CHAVE]
+    VerificaID1 -->|Não| TokenID1[TOKEN_ID]
+    VerificaID2 -->|Sim| TokenKW2[TOKEN_PALAVRA_CHAVE]
+    VerificaID2 -->|Não| TokenID2[TOKEN_ID]
+    VerificaID3 -->|Sim| TokenKW3[TOKEN_PALAVRA_CHAVE]
+    VerificaID3 -->|Não| TokenID3[TOKEN_ID]
+    
+    %% Números
+    Inicial -->|dígito| Num[NUM]
+    Num -->|dígito| Num
+    Num -->|não-dígito| TokenNum[TOKEN_NUM]
+    
+    %% Atribuição
+    Inicial -->|:| DoisPontos[DOIS_PONTOS]
+    DoisPontos -->|=| TokenAtrib[TOKEN_ATRIB]
+    DoisPontos -->|outro| Erro1[ERRO]
+    
+    %% Comentários
+    Inicial -->|'['| Coment[COMENTARIO]
+    Coment -->|não ']'| Coment
+    Coment -->|']'| Inicial
+    
+    %% Strings
+    Inicial -->|'| Str[STRING]
+    Str -->|não '| Str
+    Str -->|'| TokenStr[TOKEN_STRING]
+    
+    %% Operadores
+    Inicial -->|+| TokenMais[TOKEN_MAIS]
+    Inicial -->|-| TokenMenos[TOKEN_MENOS]
+    Inicial -->|*| TokenMult[TOKEN_MULT]
+    Inicial -->|/| TokenDiv[TOKEN_DIV]
+    Inicial -->|<| TokenMenor[TOKEN_MENOR]
+    Inicial -->|=| TokenIgual[TOKEN_IGUAL]
+    
+    %% Delimitadores
+    Inicial -->|,| TokenVirgula[TOKEN_VIRGULA]
+    Inicial -->|(| TokenAbrePar[TOKEN_ABRE_PAR]
+    Inicial -->|)| TokenFechaPar[TOKEN_FECHA_PAR]
+    
+    %% Espaços
+    Inicial -->|espaço/tab/enter| Inicial
+    
+    %% Finais
+    TokenKW1 --> End([FIM])
+    TokenKW2 --> End
+    TokenKW3 --> End
+    TokenID1 --> End
+    TokenID2 --> End
+    TokenID3 --> End
+    TokenNum --> End
+    TokenAtrib --> End
+    TokenStr --> End
+    TokenMais --> End
+    TokenMenos --> End
+    TokenMult --> End
+    TokenDiv --> End
+    TokenMenor --> End
+    TokenIgual --> End
+    TokenVirgula --> End
+    TokenAbrePar --> End
+    TokenFechaPar --> End
+    Erro1 --> End
 ```
 
 ## Estados do AFD
@@ -181,3 +276,85 @@ STRING --[']--> FIM (token STRING)
 - `COM` = COMENTARIO
 - `STR` = STRING
 - `INIC` = INICIAL
+
+---
+
+## Diagrama Simplificado (Resumo Visual)
+
+Para facilitar o entendimento, aqui está um diagrama super simplificado dos principais fluxos:
+
+```mermaid
+graph LR
+    A((INICIAL)) -->|a-z A-Z| B[ID/Palavra-chave]
+    A -->|0-9| C[Número]
+    A -->|:| D{: seguido de =?}
+    D -->|Sim| E[:=]
+    D -->|Não| F[ERRO]
+    A -->|'| G[String]
+    A -->|+,-,*,/| H[Operador]
+    A -->|<, =| I[Relacional]
+    A -->|(,),| J[Delimitador]
+    A -->|'['| K[Comentário]
+    K --> A
+    
+    B --> Final([Token])
+    C --> Final
+    E --> Final
+    F --> Final
+    G --> Final
+    H --> Final
+    I --> Final
+    J --> Final
+    
+    style A fill:#e1f5ff
+    style Final fill:#c8e6c9
+    style F fill:#ffcdd2
+```
+
+## Exemplo Prático de Reconhecimento
+
+### Entrada: `num := 123`
+
+```mermaid
+sequenceDiagram
+    participant I as INICIAL
+    participant ID as Reconhece ID
+    participant AT as Reconhece :=
+    participant N as Reconhece NUM
+    
+    Note over I: Lê 'n'
+    I->>ID: letra → ler_identificador()
+    Note over ID: Lê 'u', 'm', espaço
+    ID->>I: Retorna TOKEN_ID "num"
+    
+    Note over I: Lê ':'
+    I->>AT: dois pontos
+    Note over AT: Lê '='
+    AT->>I: Retorna TOKEN_ATRIB ":="
+    
+    Note over I: Lê '1'
+    I->>N: dígito → ler_numero()
+    Note over N: Lê '2', '3'
+    N->>I: Retorna TOKEN_NUM "123"
+```
+
+### Tokens gerados:
+1. `TOKEN_ID` com lexema "num"
+2. `TOKEN_ATRIB` com lexema ":="
+3. `TOKEN_NUM` com lexema "123"
+
+---
+
+## Resumo dos Estados Principais
+
+| Estado | O que faz | Vai para |
+|--------|-----------|----------|
+| **INICIAL** | Aguarda próximo caractere | Vários estados dependendo do caractere |
+| **ID1/ID2/ID3** | Reconhece identificador (até 3 letras) | FIM (verifica se é palavra-chave) |
+| **NUM** | Reconhece número (vários dígitos) | FIM |
+| **DOIS_PONTOS** | Aguarda '=' para formar ':=' | FIM ou ERRO |
+| **STRING** | Reconhece texto entre '...' | FIM |
+| **COMENTARIO** | Ignora tudo até ']' | INICIAL (volta) |
+
+**Total de estados:** ~20 estados
+**Estados finais:** Todos geram tokens (exceto COMENTARIO que volta ao INICIAL)
