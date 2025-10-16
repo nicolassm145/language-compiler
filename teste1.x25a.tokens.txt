@@ -1,0 +1,49 @@
+=== ANÁLISE LÉXICA - LINGUAGEM X25a ===
+Arquivo: teste1.x25a
+========================================
+
+Linha  Coluna   Token           Lexema
+------------------------------------------------
+2      1        LEIA            LEIA
+2      6        ID              num
+2      9        VIRGULA         ,
+3      1        ID              fat
+3      5        ATRIB           :=
+3      8        ID              num
+3      11       VIRGULA         ,
+4      1        SE              SE
+4      4        NUM             1
+4      6        MENOR           <
+4      8        ID              num
+4      12       ENTAO           ENTAO
+5      3        ID              fat
+5      7        ATRIB           :=
+5      10       NUM             1
+5      11       VIRGULA         ,
+6      3        FACA            FACA
+7      5        ID              fat
+7      9        ATRIB           :=
+7      12       ID              fat
+7      16       MULT            *
+7      18       ID              num
+7      21       VIRGULA         ,
+8      5        ID              num
+8      9        ATRIB           :=
+8      12       ID              num
+8      16       MENOS           -
+8      18       NUM             1
+8      19       VIRGULA         ,
+9      3        ENQUANTO        ENQUANTO
+9      12       NUM             1
+9      14       MENOR           <
+9      16       ID              num
+9      19       VIRGULA         ,
+10     3        ESCREVA         ESCREVA
+10     11       ID              fat
+10     14       VIRGULA         ,
+11     1        FIM             FIM
+
+========================================
+Total de tokens: 38
+Erros: 0
+✓ Análise OK!

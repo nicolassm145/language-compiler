@@ -1,0 +1,11 @@
+[1º exemplo: calculo do fatorial de um número > 1]
+LEIA num,
+fat := num,     [inteiro de entrada]
+SE 1 < num ENTAO
+  fat := 1,
+  FACA
+    fat := fat * num,
+    num := num - 1,
+  ENQUANTO 1 < num,
+  ESCREVA fat,
+FIM
