@@ -2,23 +2,20 @@
 #define SINTATICO_H
 #include "lexico.h"
 
-// Estrutura do analisador sintatico
 typedef struct {
-    Token *tokens;       // Array de tokens
-    int posicao;         // Posicao atual no array
-    int total;           // Total de tokens
-    Token atual;         // Token atual sendo analisado
-    int erros;           // Contador de erros
+    Token *tokens;       
+    int posicao;         
+    int total;           
+    Token atual;         
+    int erros;          
 } AnalisadorSintatico;
 
-// Funcoes principais
-AnalisadorSintatico* criarParser(const char *arquivo_tokens);
-void destruirParser(AnalisadorSintatico *parser);
-int analisar(AnalisadorSintatico *parser);
 
-// Funcoes auxiliares
-void avancaToken(AnalisadorSintatico *parser);
-void erro(AnalisadorSintatico *parser, const char *mensagem);
-int mesmoTipo(AnalisadorSintatico *parser, TipoToken tipo);
+AnalisadorSintatico* criarAnalisador(const char *arquivo_tokens);
+void destruirAnalisador(AnalisadorSintatico *analisador);
+int analisar(AnalisadorSintatico *analisador);
+void avancaToken(AnalisadorSintatico *analisador);
+void erro(AnalisadorSintatico *analisador, const char *mensagem);
+int esperado(AnalisadorSintatico *analisador, TipoToken tipo);
 
 #endif

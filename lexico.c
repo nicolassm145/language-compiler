@@ -123,15 +123,13 @@ Token leString(AnalisadorLexico *a) {
     t.linha = a->linha;
     t.coluna = a->coluna;
     t.tipo = TOKEN_STRING;
-    
+
     leChar(a);  // Pula o ' inicial
-    
     // Le ate encontrar outro 
     while (!a->fim && a->atual != '\'' && i < 99) {
         t.lexema[i++] = a->atual;
         leChar(a);
     }
-    
     if (a->atual == '\'') 
         leChar(a);  // Pula o ' final
     else 
@@ -144,7 +142,6 @@ Token leString(AnalisadorLexico *a) {
 // Cria o analisador lexico
 AnalisadorLexico* criaAnalisador(const char *nome_arquivo) {
     AnalisadorLexico *a;
-    
     a = (AnalisadorLexico*)malloc(sizeof(AnalisadorLexico));
     if (!a) return NULL;
     
@@ -172,7 +169,6 @@ void liberaMemoria(AnalisadorLexico *a) {
 // Pega o prox token
 Token proximoToken(AnalisadorLexico *a) {
     Token t;
-    
     // Pula todos os espaços e comentarios
     while (!a->fim) {
         ignoraEspacos(a);
@@ -181,7 +177,6 @@ Token proximoToken(AnalisadorLexico *a) {
         else 
             break;
     }
-    
     // Verifica se é o final
     if (a->fim) {
         t.tipo = TOKEN_EOF;
@@ -193,24 +188,19 @@ Token proximoToken(AnalisadorLexico *a) {
     
     t.linha = a->linha;
     t.coluna = a->coluna;
-    
     // Verifica se é ID ou palavra chave
     if (isalpha(a->atual)) 
         return leIdentificador(a);
-    
     // Verifica se é numero
     if (isdigit(a->atual)) 
-        return leNumero(a);
-    
+        return leNumero(a);   
     // Ignora se for string
     if (a->atual == '\'') 
-        return leString(a);
-    
+        return leString(a);   
     // Verifica se é atribuicao :=
     if (a->atual == ':') {
         t.lexema[0] = ':';
-        leChar(a);
-        
+        leChar(a);       
         if (a->atual == '=') {
             t.lexema[1] = '=';
             t.lexema[2] = '\0';
@@ -221,12 +211,11 @@ Token proximoToken(AnalisadorLexico *a) {
             t.tipo = TOKEN_ERRO;  // ':' sozinho e erro
         }
         return t;
-    }
-    
+    } 
     // Operadores 
     t.lexema[0] = a->atual;
     t.lexema[1] = '\0';
-    
+
     switch (a->atual) {
         case '+': 
             t.tipo = TOKEN_MAIS;      
@@ -316,13 +305,10 @@ void salvaTokens(const char *arq_entrada, const char *arq_saida) {
     int erros = 0;
     
     a = criaAnalisador(arq_entrada);
-
     saida = fopen(arq_saida, "w");
    
     // Cabecalho
-    fprintf(saida, "=== ANALISE LEXICA - LINGUAGEM X25a ===\n");
     fprintf(saida, "Arquivo: %s\n", arq_entrada);
-    fprintf(saida, "========================================\n\n");
     fprintf(saida, "%-6s %-8s %-15s %s\n", "Linha", "Coluna", "Token", "Lexema");
     fprintf(saida, "------------------------------------------------\n");
  
@@ -346,5 +332,4 @@ void salvaTokens(const char *arq_entrada, const char *arq_saida) {
     
     fclose(saida);
     liberaMemoria(a);
-
 }

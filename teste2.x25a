@@ -2,11 +2,11 @@
 LEIA a,
 LEIA b,
 SE a < b ENTAO
-  ESCREVA b,
+  ESCREVA b,  [apresenta o maior “b”]
 SENAO
   SE b < a ENTAO
-    ESCREVA a,
+    ESCREVA a, [apresenta o maior “a”]
   SENAO
-    ESCREVA 'iguais',
+    ESCREVA 'iguais', [mensagem entre ‘...’]
   FIM
 FIM

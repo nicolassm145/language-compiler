@@ -18,68 +18,56 @@ void avancaToken(AnalisadorSintatico *p) {
 
 // Se tiver erro
 void erro(AnalisadorSintatico *p, const char *mensagem) {
-    printf("ERRO SINTATICO (linha %d, coluna %d): %s\n", 
+    printf("ERRO (linha %d, coluna %d): %s\n", 
            p->atual.linha, p->atual.coluna, mensagem);
-    printf("Token encontrado: %s (%s)\n", 
-           nomeToken(p->atual.tipo), p->atual.lexema);
     p->erros++;
 }
 
 // Verifica se é igual o tipo esperado
-int mesmoTipo(AnalisadorSintatico *p, TipoToken tipo) {
-    if (p->atual.tipo == tipo) {
+int esperado(AnalisadorSintatico *p, TipoToken tipo) {
+     if (p->atual.tipo == tipo) {
         avancaToken(p);
         return 1;  
     }
     return 0;  
 }
 
-// Alias para mesmoTipo (compatibilidade)
-int esperado(AnalisadorSintatico *p, TipoToken tipo) {
-    return mesmoTipo(p, tipo);
-}
-
 // Gramatica
-// PROGRAMA -> COMANDOS
+// Programa -> Comandos
 void programa(AnalisadorSintatico *p) {
     comandos(p);
-
     if (p->atual.tipo != TOKEN_EOF) 
         erro(p, "Cade o fim");
 }
 
-// COMANDOS -> COMANDO RESTO_COMANDOS
-// RESTO_COMANDOS -> , COMANDO RESTO_COMANDOS | ε
+// Comandos -> Comando OutrosComandos
+// OutrosComandos -> , Comando OutrosComandos | ε
 void comandos(AnalisadorSintatico *p) {
-    comando(p);
-    
+    comando(p); 
     // Se tem virgula, continua
     while (p->atual.tipo == TOKEN_VIRGULA) {
         avancaToken(p);
         // Tava dando erro antes 
         if (p->atual.tipo == TOKEN_ENQUANTO || p->atual.tipo == TOKEN_SENAO || p->atual.tipo == TOKEN_FIM) 
             break;
-        
         comando(p);
     }
 }
 
-// ATRIBUICAO -> id := EXPR_ARIT
+// Atribuicao -> id := ExpressaoAritmetica
 void atribuicao(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_ID)) {
         erro(p, "Esperado id na atribuicao");
         return;
     }
-    
     if (!esperado(p, TOKEN_ATRIB)) {
         erro(p, "Esperado ':=' na atribuicao");
         return;
     }
-    
     exprArit(p);
 }
 
-// LEITURA -> LEIA id
+// Leitura -> LEIA id
 void leitura(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_LEIA)) {
         erro(p, "Esperado LEIA");
@@ -92,8 +80,8 @@ void leitura(AnalisadorSintatico *p) {
     }
 }
 
-// ESCRITA -> ESCREVA ITEM_ESCRITA
-// ITEM_ESCRITA -> id | num | string
+// Escrita -> ESCREVA itemEscrita
+// itemEscrita -> id | num | string
 void escrita(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_ESCREVA)) {
         erro(p, "Esperado ESCREVA");
@@ -106,14 +94,13 @@ void escrita(AnalisadorSintatico *p) {
         erro(p, "Esperado id, num ou string apos ESCREVA");
 }
 
-// SE_ENTAO -> SE EXPR_BOOL ENTAO COMANDOS PARTE_SENAO FIM
-// PARTE_SENAO -> SENAO COMANDOS | ε
+// SeEntao -> SE ExpressãoBool ENTAO Comandos ParteSenão FIM
+// ParteSenão -> SENAO Comandos | ε
 void seEntao(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_SE)) {
         erro(p, "Esperado SE");
         return;
     }
-    
     exprBool(p);
     
     if (!esperado(p, TOKEN_ENTAO)) {
@@ -122,7 +109,6 @@ void seEntao(AnalisadorSintatico *p) {
     }
     
     comandos(p);
-    
     // SENAO e opcional
     if (p->atual.tipo == TOKEN_SENAO) {
         avancaToken(p);
@@ -135,7 +121,7 @@ void seEntao(AnalisadorSintatico *p) {
     }
 }
 
-// FACA_ENQUANTO -> FACA COMANDOS ENQUANTO EXPR_BOOL
+// façaEnquanto -> Faça Comandos Enquanto ExpressãoBool
 void facaEnquanto(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_FACA)) {
         erro(p, "Esperado FACA");
@@ -152,7 +138,7 @@ void facaEnquanto(AnalisadorSintatico *p) {
     exprBool(p);
 }
 
-// COMANDO -> ATRIBUICAO | LEITURA | ESCRITA | SE_ENTAO | FACA_ENQUANTO
+// Comando -> Atribuicao | Leitura | Escrita | SeEntao | FaçaEnquanto
 void comando(AnalisadorSintatico *p) {
     switch (p->atual.tipo) {
         case TOKEN_ID:
@@ -177,46 +163,44 @@ void comando(AnalisadorSintatico *p) {
     }
 }
 
-// TERMO -> FATOR RESTO_TERMO
-// RESTO_TERMO -> * FATOR RESTO_TERMO | / FATOR RESTO_TERMO | ε
 
-// FATOR -> id | num
+// Precisa para funfar
+// Termo -> Fator restoTermo
+// restoTermo -> * Fator restoTermo | / Fator restoTermo | ε
+
+// Fator -> id | num
 void fator(AnalisadorSintatico *p) {
     if (p->atual.tipo == TOKEN_ID || p->atual.tipo == TOKEN_NUM) 
         avancaToken(p);
     else 
         erro(p, "Esperado identificador ou numero");
-
 }
 
-// TERMO -> FATOR RESTO_TERMO
+// Termo -> Fator restoTermo
 void termo(AnalisadorSintatico *p) {
     fator(p);
-    
-    // RESTO_TERMO -> * FATOR | / FATOR | ε
+    // restoTermo -> * Fator restoTermo | / Fator restoTermo | ε
     while (p->atual.tipo == TOKEN_MULT || p->atual.tipo == TOKEN_DIV) {
         avancaToken(p);
         fator(p);
     }
 }
 
-// EXPR_ARIT -> TERMO RESTO_EXPR
-// RESTO_EXPR -> + TERMO RESTO_EXPR | - TERMO RESTO_EXPR | ε
+// ExpressãoArit -> Termo restoExpr
+// restoExpr -> + Termo restoExpr | - Termo restoExpr | ε
 void exprArit(AnalisadorSintatico *p) {
     termo(p);
-    
-    // RESTO_EXPR -> + TERMO | - TERMO | ε
+    // restoExpr -> + Termo | - Termo | ε
     while (p->atual.tipo == TOKEN_MAIS || p->atual.tipo == TOKEN_MENOS) {
         avancaToken(p);
         termo(p);
     }
 }
 
-// EXPR_BOOL -> EXPR_ARIT OP_REL EXPR_ARIT
-// OP_REL -> < | =
+// ExpressãoBool -> ExpressãoArit Operador ExpressãoArit
+// Operador -> < | =
 void exprBool(AnalisadorSintatico *p) {
     exprArit(p);
-    
     // Operador relacional
     if (p->atual.tipo == TOKEN_MENOR || p->atual.tipo == TOKEN_IGUAL) {
         avancaToken(p);
@@ -226,41 +210,36 @@ void exprBool(AnalisadorSintatico *p) {
     
 }
 
-// ===== FUNCOES DE GERENCIAMENTO =====
 
-// Cria o parser lendo tokens do arquivo do analisador lexico
-AnalisadorSintatico* criarParser(const char *arquivo_tokens) {
+// Cria o analisador sintatico 
+AnalisadorSintatico* criarAnalisador(const char *arquivo_tokens) {
+    Token t;
+
     AnalisadorSintatico *p = (AnalisadorSintatico*)malloc(sizeof(AnalisadorSintatico));
     if (!p) return NULL;
-    
-    // Por enquanto, vamos pegar tokens diretamente do analisador lexico
-    // Em vez de ler do arquivo .Results.txt
+    // Pega tokens do analisador lexico
     AnalisadorLexico *lex = criaAnalisador(arquivo_tokens);
     if (!lex) {
         free(p);
         return NULL;
     }
-    
-    // Conta tokens primeiro
+    // Conta qnts tokes tem
     int capacidade = 1000;
     p->tokens = (Token*)malloc(capacidade * sizeof(Token));
     p->total = 0;
     
-    Token t;
     do {
         t = proximoToken(lex);
-        
         if (p->total >= capacidade) {
             capacidade *= 2;
             p->tokens = (Token*)realloc(p->tokens, capacidade * sizeof(Token));
         }
-        
+
         p->tokens[p->total++] = t;
-        
+    
     } while (t.tipo != TOKEN_EOF);
     
     liberaMemoria(lex);
-    
     p->posicao = 0;
     p->atual = p->tokens[0];
     p->erros = 0;
@@ -268,15 +247,15 @@ AnalisadorSintatico* criarParser(const char *arquivo_tokens) {
     return p;
 }
 
-// Destroi o parser
-void destruirParser(AnalisadorSintatico *p) {
+// Destroi o analisador sintatico
+void destruirAnalisador(AnalisadorSintatico *p) {
     if (p) {
         free(p->tokens);
         free(p);
     }
 }
 
-// Funcao principal de analise
+// Começa a analisew
 int analisar(AnalisadorSintatico *p) {
     programa(p);
     

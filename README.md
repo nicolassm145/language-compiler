@@ -9,65 +9,54 @@ Este projeto implementa um **compilador completo** para a linguagem X25a, inclui
 
 O analisador léxico utiliza um **Autômato Finito Determinístico (AFD)** implementado manualmente em C, e o analisador sintático utiliza a técnica **descendente recursiva preditiva LL(1)**.
 
-## Como Compilar
+## 🔧 Como Compilar
 
-### Parte (a) - Analisador Léxico:
+### Compilador Completo (Recomendado):
 
 ```bash
-gcc -o analisador main.c lexico.c -Wall
+gcc -o compilador main.c lexico.c sintatico.c -Wall
 ```
 
-### Parte (c) - Analisador Sintático:
 
+### Analisadores Individuais :
+
+**Apenas Léxico:**
 ```bash
-gcc -o sintatico main_parser.c sintatico.c lexico.c -Wall
+gcc -o analisador mainLexico.c lexico.c -Wall
+```
+
+**Apenas Sintático:**
+```bash
+gcc -o sintatico mainSintatico.c sintatico.c lexico.c -Wall
 ```
 
 **Explicação:**
 - `gcc`: compilador C
-- `-o analisador` / `-o sintatico`: nome do executável gerado
-- `main.c lexico.c` / `main_parser.c sintatico.c lexico.c`: arquivos a compilar
+- `-o compilador`: nome do executável gerado
+- `main.c lexico.c sintatico.c`: arquivos a compilar
 - `-Wall`: mostra todos os warnings (avisos)
 
-## ▶️ Como Executar
+## Como Executar
 
-### Analisador Léxico (Parte a):
+```bash
+./compilador teste1.x25a
+```
 
+Isso vai:
+1. Fazer **análise léxica**
+2. Salvar tokens em `teste1.x25a.Results.txt`
+3. Fazer **análise sintática** 
+4. Reportar se o programa é válido ou tem erros
+
+
+**Apenas Léxico:**
 ```bash
 ./analisador teste1.x25a
 ```
 
-Isso vai:
-1. Ler o arquivo `teste1.x25a`
-2. Fazer a análise léxica
-3. Gerar o arquivo `teste1.x25a.Results.txt` com os tokens encontrados
-
-### Analisador Sintático (Parte c):
-
+**Apenas Sintático:**
 ```bash
 ./sintatico teste1.x25a
-```
-
-Isso vai:
-1. Ler o arquivo `teste1.x25a`
-2. Fazer análise léxica (gerar tokens)
-3. Fazer análise sintática (validar estrutura)
-4. Reportar se o programa é válido ou se há erros sintáticos
-
-### Executar todos os testes:
-
-```bash
-# Análise léxica
-./analisador teste1.x25a
-./analisador teste2.x25a
-./analisador teste3.x25a
-./analisador teste4.x25a
-
-# Análise sintática
-./sintatico teste1.x25a
-./sintatico teste2.x25a
-./sintatico teste3.x25a
-./sintatico teste4.x25a
 ```
 
 ## Formato das Saídas
@@ -143,7 +132,6 @@ O analisador léxico detecta:
 4. **Caracteres inválidos**
 
 
-
 ### Erros Sintáticos:
 
 O analisador sintático detecta:
@@ -151,97 +139,4 @@ O analisador sintático detecta:
 2. **Palavra-chave faltando** (esperado SE, ENTAO, etc.)
 3. **Operador faltando** (esperado :=, <, =, etc.)
 4. **Estrutura incorreta** (comando incompleto)
-
-
-## 🔍 Estrutura do Código
-
-### Analisador Léxico
-
-#### `lexico.h`
-Define:
-- Enumeração `TipoToken` com todos os tipos de tokens
-- Estrutura `Token` (tipo, lexema, linha, coluna)
-- Estrutura `AnalisadorLexico` (estado do analisador)
-- Protótipos das funções
-
-#### `lexico.c`
-Implementa:
-- `criaAnalisador()`: inicializa o analisador
-- `proximoToken()`: retorna o próximo token (implementação do AFD)
-- `leIdentificador()`: reconhece identificadores/palavras-chave
-- `leNumero()`: reconhece números
-- `leString()`: reconhece strings
-- `ignoraComentario()`: ignora comentários
-- `salvaTokens()`: processa arquivo e salva tokens
-
-#### `main.c`
-- Processa argumentos da linha de comando
-- Chama o analisador léxico
-- Exibe mensagens ao usuário
-
-### Analisador Sintático
-
-#### `sintatico.h`
-Define:
-- Estrutura `AnalisadorSintatico` (tokens, posição, erros)
-- Protótipos das funções do parser
-
-#### `sintatico.c`
-Implementa (uma função por regra da gramática):
-- `programa()`: regra inicial
-- `comandos()`: sequência de comandos
-- `comando()`: escolhe tipo de comando
-- `atribuicao()`: id := expressão
-- `leitura()`: LEIA id
-- `escrita()`: ESCREVA saída
-- `seEntao()`: SE-ENTAO-SENAO-FIM
-- `facaEnquanto()`: FACA-ENQUANTO
-- `exprArit()`: expressões aritméticas
-- `termo()`: termos com * e /
-- `fator()`: fatores (id, num, parênteses)
-- `exprBool()`: expressões booleanas
-
-#### `main_parser.c`
-- Processa argumentos da linha de comando
-- Chama o analisador léxico para gerar tokens
-- Chama o analisador sintático para validar
-- Exibe resultado da análise
-
-## 💡 Como Funcionam os Analisadores
-
-### Analisador Léxico (AFD)
-
-O AFD (Autômato Finito Determinístico) funciona como uma máquina de estados:
-
-1. **Estado INICIAL**: aguarda caractere
-2. Lê um caractere e **transita** para novo estado
-3. Continua lendo até reconhecer um **token completo**
-4. Retorna ao estado inicial e repete
-
-Exemplo:
-```
-"fat" → INICIAL --[f]--> ID1 --[a]--> ID2 --[t]--> ID3 --[espaço]--> TOKEN_ID
-```
-
-Veja o diagrama completo em `AFD.md`!
-
-### Analisador Sintático (Parser LL(1))
-
-O parser descendente recursivo funciona com:
-
-1. **Uma função para cada regra da gramática**
-2. **Olha apenas 1 token à frente** para decidir (LL(1))
-3. **Chamadas recursivas** seguem a estrutura da gramática
-4. **Valida** se o programa segue as regras sintáticas
-
-Exemplo de análise de `LEIA x`:
-```
-programa()
-  └─> comandos()
-        └─> comando()
-              └─> leitura()
-                    ├─> consome LEIA ✅
-                    └─> consome x (ID) ✅
-```
-
 

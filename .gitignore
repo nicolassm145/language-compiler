@@ -1,13 +1,4 @@
 .gitignore
 analisador
 sintatico
-ARVORES_DERIVACAO.md
-GRAMATICA.md
-INDICE.md
-RESPOSTA_PARTE_B.md
-RESPOSTA_PARTE_A.md
-EXPLICACAO_PARSER.md
-RESPOSTA_PARTE_C.md
-RESUMO_FINAL.md
-
-
+compilador

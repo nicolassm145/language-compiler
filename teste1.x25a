@@ -7,5 +7,5 @@ SE 1 < num ENTAO
     fat := fat * num,
     num := num - 1,
   ENQUANTO 1 < num,
-  ESCREVA fat,
+  ESCREVA fat,   [apresenta o fatorial]
 FIM
