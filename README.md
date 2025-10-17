@@ -9,7 +9,7 @@ Este projeto implementa um **compilador completo** para a linguagem X25a, inclui
 
 O analisador léxico utiliza um **Autômato Finito Determinístico (AFD)** implementado manualmente em C, e o analisador sintático utiliza a técnica **descendente recursiva preditiva LL(1)**.
 
-## 🔧 Como Compilar
+## Como Compilar
 
 ### Compilador Completo (Recomendado):
 
