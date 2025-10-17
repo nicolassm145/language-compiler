@@ -244,4 +244,4 @@ programa()
                     └─> consome x (ID) ✅
 ```
 
-Veja explicação completa em `EXPLICACAO_PARSER.md`!
+
