@@ -27,8 +27,6 @@ typedef enum {
     TOKEN_IGUAL,        // =
     // Delimitador
     TOKEN_VIRGULA,      // ,
-    //TOKEN_ABRE_PAR,     // (
-    //TOKEN_FECHA_PAR,    // )
     TOKEN_EOF,          // Fim de arquivo
     TOKEN_ERRO          // Erro
 } TipoToken;
@@ -49,15 +47,10 @@ typedef struct {
     int fim;            
 } AnalisadorLexico;
 
-/* Cria o analisador abrindo o arquivo */
 AnalisadorLexico* criaAnalisador(const char *nome_arquivo);
-/* Libera memória */
 void liberaMemoria(AnalisadorLexico *analisador);
-/* Retorna o próximo token do arquivo */
 Token proximoToken(AnalisadorLexico *analisador);
-/* Retorna o nome do tipo do token  */
 const char* nomeToken(TipoToken tipo);
-/* Processa arquivo completo e salva tokens */
 void salvaTokens(const char *arquivo_entrada, const char *arquivo_saida);
 
 #endif

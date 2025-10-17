@@ -10,7 +10,6 @@ typedef struct {
     int erros;          
 } AnalisadorSintatico;
 
-
 AnalisadorSintatico* criarAnalisador(const char *arquivo_tokens);
 void destruirAnalisador(AnalisadorSintatico *analisador);
 int analisar(AnalisadorSintatico *analisador);

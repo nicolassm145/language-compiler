@@ -47,8 +47,16 @@ void comandos(AnalisadorSintatico *p) {
     // Se tem virgula, continua
     while (p->atual.tipo == TOKEN_VIRGULA) {
         avancaToken(p);
-        // Tava dando erro antes 
-        if (p->atual.tipo == TOKEN_ENQUANTO || p->atual.tipo == TOKEN_SENAO || p->atual.tipo == TOKEN_FIM) 
+        // Verifica se há vírgula duplicada
+        if (p->atual.tipo == TOKEN_VIRGULA) {
+            erro(p, "Coisas duplicadas");
+            continue;  // Pula a vírgula extra e continua
+        }
+        // Aceita vírgula trailing antes de ENQUANTO, SENAO, FIM ou EOF
+        if (p->atual.tipo == TOKEN_ENQUANTO || 
+            p->atual.tipo == TOKEN_SENAO || 
+            p->atual.tipo == TOKEN_FIM ||
+            p->atual.tipo == TOKEN_EOF) 
             break;
         comando(p);
     }
@@ -58,10 +66,27 @@ void comandos(AnalisadorSintatico *p) {
 void atribuicao(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_ID)) {
         erro(p, "Esperado id na atribuicao");
-        return;
+        // Tenta se recuperar: pula tokens até achar :=
+        while (p->atual.tipo != TOKEN_ATRIB && 
+               p->atual.tipo != TOKEN_VIRGULA && 
+               p->atual.tipo != TOKEN_EOF &&
+               p->atual.tipo != TOKEN_FIM &&
+               p->atual.tipo != TOKEN_SENAO &&
+               p->atual.tipo != TOKEN_ENQUANTO) {
+            avancaToken(p);
+        }
+        if (p->atual.tipo != TOKEN_ATRIB) return;
     }
     if (!esperado(p, TOKEN_ATRIB)) {
         erro(p, "Esperado ':=' na atribuicao");
+        // Tenta se recuperar: pula até achar vírgula ou delimitador
+        while (p->atual.tipo != TOKEN_VIRGULA && 
+               p->atual.tipo != TOKEN_EOF &&
+               p->atual.tipo != TOKEN_FIM &&
+               p->atual.tipo != TOKEN_SENAO &&
+               p->atual.tipo != TOKEN_ENQUANTO) {
+            avancaToken(p);
+        }
         return;
     }
     exprArit(p);
@@ -71,12 +96,22 @@ void atribuicao(AnalisadorSintatico *p) {
 void leitura(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_LEIA)) {
         erro(p, "Esperado LEIA");
-        return;
+        // Recuperação: pula até ID ou delimitador
+        while (p->atual.tipo != TOKEN_ID && 
+               p->atual.tipo != TOKEN_VIRGULA && 
+               p->atual.tipo != TOKEN_EOF) {
+            avancaToken(p);
+        }
+        if (p->atual.tipo != TOKEN_ID) return;
     }
     
     if (!esperado(p, TOKEN_ID)) {
         erro(p, "Esperado identificador apos LEIA");
-        return;
+        // Recuperação: pula até vírgula ou delimitador
+        while (p->atual.tipo != TOKEN_VIRGULA && 
+               p->atual.tipo != TOKEN_EOF) {
+            avancaToken(p);
+        }
     }
 }
 
@@ -85,13 +120,27 @@ void leitura(AnalisadorSintatico *p) {
 void escrita(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_ESCREVA)) {
         erro(p, "Esperado ESCREVA");
-        return;
+        // Recuperação: pula até item válido ou delimitador
+        while (p->atual.tipo != TOKEN_ID && 
+               p->atual.tipo != TOKEN_NUM && 
+               p->atual.tipo != TOKEN_STRING &&
+               p->atual.tipo != TOKEN_VIRGULA && 
+               p->atual.tipo != TOKEN_EOF) {
+            avancaToken(p);
+        }
+        if (p->atual.tipo == TOKEN_VIRGULA || p->atual.tipo == TOKEN_EOF) return;
     }
     // Aceita os 3
     if (p->atual.tipo == TOKEN_ID || p->atual.tipo == TOKEN_NUM || p->atual.tipo == TOKEN_STRING) 
         avancaToken(p);
-    else
+    else {
         erro(p, "Esperado id, num ou string apos ESCREVA");
+        // Recuperação: pula até vírgula
+        while (p->atual.tipo != TOKEN_VIRGULA && 
+               p->atual.tipo != TOKEN_EOF) {
+            avancaToken(p);
+        }
+    }
 }
 
 // SeEntao -> SE ExpressãoBool ENTAO Comandos ParteSenão FIM
@@ -117,7 +166,14 @@ void seEntao(AnalisadorSintatico *p) {
 
     if (!esperado(p, TOKEN_FIM)) {
         erro(p, "Esperado FIM");
-        return;
+        // Recuperação: pula até FIM ou outro delimitador
+        while (p->atual.tipo != TOKEN_FIM && 
+               p->atual.tipo != TOKEN_ENQUANTO &&
+               p->atual.tipo != TOKEN_VIRGULA &&
+               p->atual.tipo != TOKEN_EOF) {
+            avancaToken(p);
+        }
+        if (p->atual.tipo == TOKEN_FIM) avancaToken(p);
     }
 }
 
@@ -125,14 +181,30 @@ void seEntao(AnalisadorSintatico *p) {
 void facaEnquanto(AnalisadorSintatico *p) {
     if (!esperado(p, TOKEN_FACA)) {
         erro(p, "Esperado FACA");
-        return;
+        // Recuperação: pula até achar comandos ou ENQUANTO
+        while (p->atual.tipo != TOKEN_ID && 
+               p->atual.tipo != TOKEN_LEIA &&
+               p->atual.tipo != TOKEN_ESCREVA &&
+               p->atual.tipo != TOKEN_SE &&
+               p->atual.tipo != TOKEN_ENQUANTO &&
+               p->atual.tipo != TOKEN_EOF) {
+            avancaToken(p);
+        }
+        if (p->atual.tipo == TOKEN_ENQUANTO || p->atual.tipo == TOKEN_EOF) return;
     }
     
     comandos(p);
     
     if (!esperado(p, TOKEN_ENQUANTO)) {
         erro(p, "Esperado ENQUANTO");
-        return;
+        // Recuperação: pula até expressão ou vírgula
+        while (p->atual.tipo != TOKEN_ID && 
+               p->atual.tipo != TOKEN_NUM &&
+               p->atual.tipo != TOKEN_VIRGULA &&
+               p->atual.tipo != TOKEN_EOF) {
+            avancaToken(p);
+        }
+        if (p->atual.tipo == TOKEN_VIRGULA || p->atual.tipo == TOKEN_EOF) return;
     }
     
     exprBool(p);
