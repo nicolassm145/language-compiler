@@ -1,6 +1,6 @@
 # Compilador para Linguagem X25a
 
-## Descrição
+## Descrição 
 
 Este projeto implementa um **compilador completo** para a linguagem X25a, incluindo:
 - **Analisador Léxico (Scanner)** - Parte (a)
